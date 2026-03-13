@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Upload — MunirJPG</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&display=swap');
+
+    :root {
+      --bg:      #0a0a0f;
+      --card:    #111118;
+      --border:  rgba(255,255,255,0.08);
+      --accent:  #9d4edd;
+      --accent-g: rgba(157, 78, 237, 0.2);
+      --text:    #f0f0f0;
+      --muted:   #666677;
+      --green:   #22c55e;
+      --red:     #ef4444;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 40px 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    header h1 { font-size: 1.8rem; font-weight: 900; color: #fff; display: flex; align-items: center; justify-content: center; gap: 10px; }
+    header p  { color: var(--muted); font-size: 0.85rem; margin-top: 6px; }
+
+    .badge {
+      display: inline-block;
+      background: var(--accent-g);
+      border: 1px solid rgba(157, 78, 237, 0.35);
+      color: var(--accent);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 50px;
+      margin-bottom: 14px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px;
+      width: 100%;
+      max-width: 520px;
+      margin-bottom: 24px;
+    }
+
+    .card h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: #fff;
+    }
+
+    /* Drop Zone */
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: 14px;
+      padding: 48px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.3s ease;
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .drop-zone.dragging,
+    .drop-zone:hover {
+      border-color: var(--accent);
+      background: var(--accent-g);
+    }
+
+    .drop-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .drop-icon { font-size: 3rem; margin-bottom: 12px; }
+    .drop-text { font-size: 0.9rem; color: var(--muted); line-height: 1.6; }
+    .drop-text strong { color: var(--text); }
+
+    #preview-wrap {
+      display: none;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    #preview-wrap img {
+      width: 100%;
+      border-radius: 12px;
+      object-fit: cover;
+      max-height: 240px;
+    }
+
+    #preview-wrap .clear-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(0,0,0,0.7);
+      border: none;
+      color: #fff;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .form-group { margin-bottom: 18px; }
+
+    label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    select, input[type="text"] {
+      width: 100%;
+      background: rgba(255,255,255,0.04);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.95rem;
+      padding: 12px 14px;
+      outline: none;
+      transition: 0.2s ease;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    select:focus, input:focus {
+      border-color: var(--accent);
+      background: var(--accent-g);
+    }
+
+    select {
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666677' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+    }
+
+    select option { background: #1a1a24; }
+
+    .upload-btn {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 15px;
+      cursor: pointer;
+      transition: 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .upload-btn:hover:not(:disabled) { background: #c77dff; }
+    .upload-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Progress */
+    .progress-bar-wrap {
+      display: none;
+      margin-bottom: 16px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 50px;
+      height: 8px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), #c77dff);
+      border-radius: 50px;
+      transition: width 0.3s ease;
+    }
+
+    /* Result */
+    .result-card {
+      display: none;
+      border-radius: 14px;
+      padding: 20px;
+      margin-top: 20px;
+      border: 1px solid;
+    }
+
+    .result-card.success {
+      background: rgba(34,197,94,0.08);
+      border-color: rgba(34,197,94,0.3);
+      color: var(--green);
+    }
+
+    .result-card.error {
+      background: rgba(239,68,68,0.08);
+      border-color: rgba(239,68,68,0.3);
+      color: var(--red);
+    }
+
+    .result-card h3 { font-size: 0.9rem; margin-bottom: 8px; }
+    .result-card p  { font-size: 0.82rem; opacity: 0.85; line-height: 1.6; }
+
+    /* Gallery count */
+    .gallery-count-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px 28px;
+      width: 100%;
+      max-width: 520px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .gallery-count-card h3 {
+      font-size: 0.9rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .count-wrap {
+      display: flex;
+      gap: 20px;
+    }
+
+    .count-item { text-align: center; }
+    .count-number {
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: #fff;
+      line-height: 1;
+    }
+    .count-number span { color: var(--accent); }
+    .count-label {
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-top: 4px;
+    }
+
+    footer {
+      margin-top: 40px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    footer a { color: var(--accent); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="badge">🔒 Admin Only — Local Use</div>
+    <h1><img src="watermark.png" alt="Logo" style="height: 35px;" /> Upload</h1>
+    <p>Upload, watermark, and publish photos to the gallery</p>
+  </header>
+
+  <!-- Gallery stats -->
+  <div class="gallery-count-card" id="stats-card">
+    <h3>📊 Current Gallery</h3>
+    <div class="count-wrap">
+      <div class="count-item">
+        <div class="count-number" id="count-total">–</div>
+        <div class="count-label">Total</div>
+      </div>
+      <div class="count-item">
+        <div class="count-number" id="count-football">–</div>
+        <div class="count-label">Football</div>
+      </div>
+      <div class="count-item">
+        <div class="count-number" id="count-floorball">–</div>
+        <div class="count-label">Floorball</div>
+      </div>
+      <div class="count-item">
+        <div class="count-number" id="count-general">–</div>
+        <div class="count-label">General</div>
+      </div>
+    </div>
+  </div>
+
+  <br />
+
+  <!-- Upload card -->
+  <div class="card">
+    <h2>📤 Upload New Photo</h2>
+
+    <!-- Drop zone -->
+    <div class="drop-zone" id="drop-zone">
+      <input type="file" id="file-input" accept="image/*" />
+      <div class="drop-icon">📸</div>
+      <div class="drop-text">
+        <strong>Click or drag &amp; drop</strong><br />
+        JPG, PNG, WEBP supported
+      </div>
+    </div>
+
+    <!-- Preview -->
+    <div id="preview-wrap">
+      <img id="preview-img" src="" alt="Preview" />
+      <button class="clear-btn" id="clear-btn" aria-label="Remove photo">&times;</button>
+    </div>
+
+    <!-- Category -->
+    <div class="form-group">
+      <label for="category">Category</label>
+      <select id="category">
+        <option value="football">⚽ Football</option>
+        <option value="floorball">🏑 Floorball</option>
+        <option value="general">📷 General</option>
+      </select>
+    </div>
+
+    <!-- Title -->
+    <div class="form-group">
+      <label for="title">Title <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label>
+      <input type="text" id="title" placeholder="e.g. Final match — Goals" maxlength="80" />
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-bar-wrap" id="progress-wrap">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <!-- Submit -->
+    <button class="upload-btn" id="upload-btn" disabled>
+      📤 Upload &amp; Watermark
+    </button>
+
+    <!-- Result -->
+    <div class="result-card" id="result-card">
+      <h3 id="result-title"></h3>
+      <p id="result-body"></p>
+    </div>
+  </div>
+
+  <footer>
+    <p>Admin panel — run locally via <code>python tools/upload_handler.py</code></p>
+    <br />
+    <p><a href="/">← View public website</a></p>
+  </footer>
+
+  <script>
+    const fileInput  = document.getElementById('file-input');
+    const dropZone   = document.getElementById('drop-zone');
+    const previewWrap = document.getElementById('preview-wrap');
+    const previewImg  = document.getElementById('preview-img');
+    const clearBtn    = document.getElementById('clear-btn');
+    const uploadBtn   = document.getElementById('upload-btn');
+    const progressWrap = document.getElementById('progress-wrap');
+    const progressBar  = document.getElementById('progress-bar');
+    const resultCard   = document.getElementById('result-card');
+    const resultTitle  = document.getElementById('result-title');
+    const resultBody   = document.getElementById('result-body');
+
+    let selectedFile = null;
+
+    // Load gallery stats
+    async function loadStats() {
+      try {
+        const res = await fetch('/gallery.json?t=' + Date.now());
+        const data = await res.json();
+        const photos = data.photos || [];
+        document.getElementById('count-total').textContent    = photos.length;
+        document.getElementById('count-football').textContent  = photos.filter(p => p.category === 'football').length;
+        document.getElementById('count-floorball').textContent = photos.filter(p => p.category === 'floorball').length;
+        document.getElementById('count-general').textContent   = photos.filter(p => p.category === 'general').length;
+      } catch {
+        document.getElementById('count-total').textContent = '?';
+      }
+    }
+
+    loadStats();
+
+    // File selection
+    fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+
+    dropZone.addEventListener('dragover', e => {
+      e.preventDefault();
+      dropZone.classList.add('dragging');
+    });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragging'));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.classList.remove('dragging');
+      if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+    });
+
+    function handleFile(file) {
+      if (!file || !file.type.startsWith('image/')) return;
+      selectedFile = file;
+      const reader = new FileReader();
+      reader.onload = e => {
+        previewImg.src = e.target.result;
+        previewWrap.style.display = 'block';
+        dropZone.style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+      uploadBtn.disabled = false;
+      hideResult();
+    }
+
+    clearBtn.addEventListener('click', () => {
+      selectedFile = null;
+      fileInput.value = '';
+      previewWrap.style.display = 'none';
+      dropZone.style.display = 'block';
+      uploadBtn.disabled = true;
+      hideResult();
+    });
+
+    // Upload
+    uploadBtn.addEventListener('click', async () => {
+      if (!selectedFile) return;
+
+      uploadBtn.disabled = true;
+      uploadBtn.textContent = 'Uploading…';
+      progressWrap.style.display = 'block';
+      progressBar.style.width = '20%';
+      hideResult();
+
+      const formData = new FormData();
+      formData.append('photo',    selectedFile);
+      formData.append('category', document.getElementById('category').value);
+      formData.append('title',    document.getElementById('title').value.trim());
+
+      try {
+        progressBar.style.width = '60%';
+        const res  = await fetch('/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+        progressBar.style.width = '100%';
+
+        if (res.ok && data.result) {
+          showResult('success', '✅ Photo uploaded!',
+            `Saved to: images/${data.result.saved_to.split('images/')[1] || data.result.saved_to}\n` +
+            `Orientation: ${data.result.orientation}\n` +
+            `Gallery updated ✓`);
+          loadStats();
+          clearBtn.click();
+        } else {
+          showResult('error', '❌ Upload failed', data.error || 'Unknown error');
+        }
+      } catch (err) {
+        showResult('error', '❌ Connection error', 'Make sure the Flask server is running:\npython tools/upload_handler.py');
+      } finally {
+        progressWrap.style.display = 'none';
+        progressBar.style.width = '0%';
+        uploadBtn.disabled = false;
+        uploadBtn.innerHTML = '📤 Upload &amp; Watermark';
+      }
+    });
+
+    function showResult(type, title, body) {
+      resultCard.className = `result-card ${type}`;
+      resultTitle.textContent = title;
+      resultBody.textContent = body;
+      resultCard.style.display = 'block';
+    }
+
+    function hideResult() {
+      resultCard.style.display = 'none';
+    }
+  </script>
+
+</body>
+</html>
